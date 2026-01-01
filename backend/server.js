@@ -40,6 +40,48 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime() });
 });
 
+// TEMPORARY DEBUG ROUTE
+app.get('/api/debug-email', async (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'Please provide email query param' });
+
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    try {
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'ShopKart Debug Email',
+            text: 'If you see this, your email configuration is CORRECT!'
+        });
+        res.json({
+            success: true,
+            message: 'Email sent successfully!',
+            info: info.response,
+            env: {
+                userConfigured: !!process.env.EMAIL_USER,
+                passConfigured: !!process.env.EMAIL_PASS
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            env: {
+                userConfigured: !!process.env.EMAIL_USER,
+                passConfigured: !!process.env.EMAIL_PASS
+            }
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
