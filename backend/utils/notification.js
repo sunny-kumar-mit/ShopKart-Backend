@@ -16,20 +16,26 @@ const getTwilioClient = () => {
     return null;
 };
 
-exports.sendEmail = (to, subject, text) => {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: to,
-            subject: subject,
-            text: text
-        };
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) console.error('[Email] Error:', err);
-            else console.log('[Email] Sent:', info.response);
-        });
-    } else {
+exports.sendEmail = async (to, subject, text) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.log('[Email] Skipped (Credentials missing)');
+        return; // Or throw error if you want strictness
+    }
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: to,
+        subject: subject,
+        text: text
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('[Email] Sent:', info.response);
+        return info;
+    } catch (error) {
+        console.error('[Email] Error:', error);
+        throw error; // Propagate error to caller
     }
 };
 
