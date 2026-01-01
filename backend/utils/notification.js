@@ -3,17 +3,17 @@ const twilio = require('twilio');
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // use SSL
+    port: 587,
+    secure: false, // Use STARTTLS
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // Helps with some intermediate proxies
+        rejectUnauthorized: false
     },
-    family: 4, // Force IPv4 to avoid IPv6 timeouts
-    connectionTimeout: 30000 // 30 seconds connection timeout
+    family: 4, // Force IPv4
+    connectionTimeout: 30000
 });
 
 const getTwilioClient = () => {
