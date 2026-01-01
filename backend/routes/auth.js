@@ -251,7 +251,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 // Google Auth Callback
 router.get('/google/callback',
-    passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login?error=auth_failed' }),
+    passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=auth_failed` }),
     (req, res) => {
         // Generate JWT
         const payload = { user: { id: req.user.id } };
@@ -260,11 +260,11 @@ router.get('/google/callback',
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '30d' },
             (err, token) => {
-                if (err) return res.redirect('http://localhost:5173/login?error=token_error');
+                if (err) return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=token_error`);
 
                 // Redirect to frontend with token
-                // Assuming frontend is at http://localhost:5173
-                res.redirect(`http://localhost:5173/auth/callback?token=${token}&userId=${req.user.id}&name=${encodeURIComponent(req.user.name)}&email=${req.user.email}`);
+                const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+                res.redirect(`${frontendUrl}/auth/callback?token=${token}&userId=${req.user.id}&name=${encodeURIComponent(req.user.name)}&email=${req.user.email}`);
             }
         );
     }

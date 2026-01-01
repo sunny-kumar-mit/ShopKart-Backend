@@ -32,7 +32,8 @@ Go to the **Environment** tab and click **Add Environment Variable**. Add all va
 | `PORT` | `10000` (or let Render assign it, but setting it is safe) |
 | `MONGO_URI` | Copy from local `.env` |
 | `JWT_SECRET` | Use a strong secret |
-| `GOOGLE_CALLBACK_URL` | `https://<YOUR-RENDER-APP-NAME>.onrender.com/auth/google/callback` |
+| `GOOGLE_CALLBACK_URL` | `https://shopkart-backend-hc6b.onrender.com/api/auth/google/callback` |
+| `FRONTEND_URL` | `https://shopkartindia.vercel.app` (Your Vercel Domain) |
 | `...others...` | Copy keys (Razorpay, OpenAI, Twilio, Email) |
 
 > **Critical**: Update your `GOOGLE_CALLBACK_URL` on Render to match the deployed domain!
