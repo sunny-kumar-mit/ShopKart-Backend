@@ -54,7 +54,8 @@ app.get('/api/debug-email', async (req, res) => {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         },
-        connectionTimeout: 10000
+        family: 4,
+        connectionTimeout: 30000
     });
 
     try {
