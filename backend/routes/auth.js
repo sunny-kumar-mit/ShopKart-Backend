@@ -149,9 +149,7 @@ router.post('/login', async (req, res) => {
             user.mobileOtp = undefined; // Clear other
             message = 'OTP sent to email';
 
-            if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-                sendEmail(user.email, 'ShopKart Login Code', `Your login code is: ${otp}`);
-            }
+            sendEmail(user.email, 'ShopKart Login Code', `Your login code is: ${otp}`);
         } else {
             // Must be mobile
             user.mobileOtp = otp;
