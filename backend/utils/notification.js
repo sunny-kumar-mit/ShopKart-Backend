@@ -2,18 +2,12 @@ const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // Use STARTTLS
+    service: 'gmail', // Automatically sets host, port 465/587, and secure options
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    tls: {
-        rejectUnauthorized: false
-    },
-    family: 4, // Force IPv4
-    connectionTimeout: 30000
+    connectionTimeout: 10000 // 10 seconds timeout (fail fast)
 });
 
 const getTwilioClient = () => {

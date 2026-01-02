@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const dns = require('node:dns');
+dns.setDefaultResultOrder('ipv4first'); // CRITICAL FIX: Force Node to use IPv4 for Gmail
 require('dotenv').config();
 require('./config/passport'); // Init passport
 
