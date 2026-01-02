@@ -2,12 +2,17 @@ const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Automatically sets host, port 465/587, and secure options
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Internal Render fix: use SSL port
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    connectionTimeout: 10000 // 10 seconds timeout (fail fast)
+    tls: {
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000 // 10s timeout
 });
 
 const getTwilioClient = () => {
@@ -20,7 +25,7 @@ const getTwilioClient = () => {
 exports.sendEmail = async (to, subject, text) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.log('[Email] Skipped (Credentials missing)');
-        return; // Or throw error if you want strictness
+        return;
     }
 
     const mailOptions = {
@@ -30,13 +35,19 @@ exports.sendEmail = async (to, subject, text) => {
         text: text
     };
 
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log('[Email] Sent:', info.response);
-        return info;
-    } catch (error) {
-        console.error('[Email] Error:', error);
-        throw error; // Propagate error to caller
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            const info = await transporter.sendMail(mailOptions);
+            console.log('[Email] Sent:', info.response);
+            return info;
+        } catch (error) {
+            console.error(`[Email] Error (Attempts leftover: ${retries - 1}):`, error.message);
+            retries -= 1;
+            if (retries === 0) throw error; // Throw final error
+            // Wait 1 second before retry
+            await new Promise(res => setTimeout(res, 1000));
+        }
     }
 };
 
