@@ -1,10 +1,12 @@
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
+// CONFIGURATION: Port 587 (STARTTLS) is standard for Node.js
+// The global dns.setDefaultResultOrder('ipv4first') in server.js handles the network layer.
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Internal Render fix: use SSL port
+    port: 587,
+    secure: false, // Must be false for port 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -12,7 +14,7 @@ const transporter = nodemailer.createTransport({
     tls: {
         rejectUnauthorized: false
     },
-    connectionTimeout: 10000 // 10s timeout
+    connectionTimeout: 10000 // 10s fail fast
 });
 
 const getTwilioClient = () => {
@@ -23,9 +25,10 @@ const getTwilioClient = () => {
 };
 
 exports.sendEmail = async (to, subject, text) => {
+    // CRITICAL: Fail if credentials are missing so the user knows via Frontend Toast
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.log('[Email] Skipped (Credentials missing)');
-        return;
+        console.error('[Email] Credentials Missing in Environment Variables');
+        throw new Error('Server Email Credentials Missing');
     }
 
     const mailOptions = {
@@ -35,19 +38,14 @@ exports.sendEmail = async (to, subject, text) => {
         text: text
     };
 
-    let retries = 3;
-    while (retries > 0) {
-        try {
-            const info = await transporter.sendMail(mailOptions);
-            console.log('[Email] Sent:', info.response);
-            return info;
-        } catch (error) {
-            console.error(`[Email] Error (Attempts leftover: ${retries - 1}):`, error.message);
-            retries -= 1;
-            if (retries === 0) throw error; // Throw final error
-            // Wait 1 second before retry
-            await new Promise(res => setTimeout(res, 1000));
-        }
+    try {
+        // No retry - fail fast so we can debug
+        const info = await transporter.sendMail(mailOptions);
+        console.log('[Email] Sent:', info.response);
+        return info;
+    } catch (error) {
+        console.error('[Email] Error:', error.message);
+        throw error; // Propagate to route handler
     }
 };
 

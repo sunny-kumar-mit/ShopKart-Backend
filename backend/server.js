@@ -50,8 +50,8 @@ app.get('/api/debug-email', async (req, res) => {
     const nodemailer = require('nodemailer');
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
+        port: 587,
+        secure: false, // STARTTLS
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
@@ -59,7 +59,6 @@ app.get('/api/debug-email', async (req, res) => {
         tls: {
             rejectUnauthorized: false
         },
-        // family: 4, // Not strictly needed with dns.setDefaultResultOrder
         connectionTimeout: 10000
     });
 
