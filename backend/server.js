@@ -47,35 +47,27 @@ app.get('/api/debug-email', async (req, res) => {
     const { email } = req.query;
     if (!email) return res.status(400).json({ error: 'Please provide email query param' });
 
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // STARTTLS
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        tls: {
-            rejectUnauthorized: false
-        },
-        connectionTimeout: 10000
-    });
+    const { Resend } = require('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     try {
-        const info = await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        const data = await resend.emails.send({
+            from: 'ShopKart <onboarding@resend.dev>',
             to: email,
-            subject: 'ShopKart Debug Email',
-            text: 'If you see this, your email configuration is CORRECT!'
+            subject: 'ShopKart Debug Email (Resend)',
+            html: '<strong>If you see this, Resend is working perfectly!</strong>'
         });
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
         res.json({
             success: true,
-            message: 'Email sent successfully!',
-            info: info.response,
+            message: 'Email sent successfully via Resend API!',
+            id: data.id,
             env: {
-                userConfigured: !!process.env.EMAIL_USER,
-                passConfigured: !!process.env.EMAIL_PASS
+                keyConfigured: !!process.env.RESEND_API_KEY
             }
         });
     } catch (error) {
@@ -83,8 +75,7 @@ app.get('/api/debug-email', async (req, res) => {
             success: false,
             error: error.message,
             env: {
-                userConfigured: !!process.env.EMAIL_USER,
-                passConfigured: !!process.env.EMAIL_PASS
+                keyConfigured: !!process.env.RESEND_API_KEY
             }
         });
     }
