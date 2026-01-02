@@ -39,10 +39,10 @@ router.post('/register', async (req, res) => {
         fs.writeFileSync('otp.txt', `[REGISTER] Email OTP: ${emailOtp} | Mobile OTP: ${mobileOtp}`);
 
         // Send Email OTP
-        sendEmail(email, 'ShopKart Registration Code', `Your Email OTP is: ${emailOtp}`);
+        await sendEmail(email, 'ShopKart Registration Code', `Your Email OTP is: ${emailOtp}`);
 
         // Send Mobile OTP (Twilio)
-        sendSms(mobile, `Your ShopKart verification code is: ${mobileOtp}`);
+        await sendSms(mobile, `Your ShopKart verification code is: ${mobileOtp}`);
 
         console.log(`[DEV MODE] Register OTPs -> Email: ${emailOtp}, Mobile: ${mobileOtp}`);
 
@@ -196,8 +196,8 @@ router.post('/forgot-password', async (req, res) => {
         await user.save();
 
         // Send Notifications
-        sendEmail(user.email, 'ShopKart Password Reset', `Your Email OTP is: ${emailOtp}`);
-        sendSms(user.mobile, `Your ShopKart password reset code is: ${mobileOtp}`);
+        await sendEmail(user.email, 'ShopKart Password Reset', `Your Email OTP is: ${emailOtp}`);
+        await sendSms(user.mobile, `Your ShopKart password reset code is: ${mobileOtp}`);
 
         // For debugging
         fs.writeFileSync('otp.txt', `[RESET_PWD] Email: ${emailOtp} | Mobile: ${mobileOtp}`);
