@@ -63,6 +63,10 @@ exports.sendEmail = async (to, subject, textOrHtml) => {
 
         if (data.error) {
             console.error('[Email] Resend API Error:', data.error);
+            // Handle specific Resend trial limitation error
+            if (data.error.name === 'validation_error' && data.error.message.includes('resend.dev')) {
+                throw new Error(`Cloud Mode Restriction: Email can only be sent to verified address (${process.env.EMAIL_USER || 'admin'}). Please verify domain on Resend.`);
+            }
             throw new Error(data.error.message);
         }
 
@@ -70,6 +74,8 @@ exports.sendEmail = async (to, subject, textOrHtml) => {
         return data;
     } catch (error) {
         console.error('[Email] Execution Error:', error.message);
+        // Pass through the specific error
+        if (error.message.includes('Cloud Mode Restriction')) throw error;
         throw error;
     }
 };
