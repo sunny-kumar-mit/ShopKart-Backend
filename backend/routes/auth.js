@@ -62,6 +62,10 @@ router.post('/verify-otp', async (req, res) => {
         console.log(`[VERIFY-OTP] Request:`, { identifier, otp, emailOtp, mobileOtp });
 
         // identifier can be email or mobile
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { mobile: identifier }]
+        });
+
         if (!user) {
             console.log(`[VERIFY-OTP] FAIL: User not found for identifier: '${identifier}'`);
             return res.status(400).json({ message: 'User not found (Verify Step)' });
