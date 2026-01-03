@@ -62,17 +62,14 @@ router.post('/verify-otp', async (req, res) => {
         console.log(`[VERIFY-OTP] Request:`, { identifier, otp, emailOtp, mobileOtp });
 
         // identifier can be email or mobile
-        const user = await User.findOne({
-            $or: [{ email: identifier }, { mobile: identifier }]
-        });
-
         if (!user) {
-            console.log(`[VERIFY-OTP] User not found for identifier: '${identifier}'`);
-            return res.status(400).json({ message: 'User not found' });
+            console.log(`[VERIFY-OTP] FAIL: User not found for identifier: '${identifier}'`);
+            return res.status(400).json({ message: 'User not found (Verify Step)' });
         }
         console.log(`[VERIFY-OTP] User found: ${user.email} (Verified: ${user.isVerified})`);
 
         if (user.otpExpires < Date.now()) {
+            console.log(`[VERIFY-OTP] FAIL: OTA expired for ${identifier}`);
             return res.status(400).json({ message: 'OTP expired' });
         }
 
@@ -80,9 +77,11 @@ router.post('/verify-otp', async (req, res) => {
 
         // Dual Verification (Registration)
         if (emailOtp && mobileOtp) {
+            console.log(`[VERIFY-OTP] Checking Dual OTPs. Expected: [E:${user.emailOtp}, M:${user.mobileOtp}], Received: [E:${emailOtp}, M:${mobileOtp}]`);
             if (user.emailOtp === emailOtp && user.mobileOtp === mobileOtp) {
                 isVerified = true;
             } else {
+                console.log(`[VERIFY-OTP] FAIL: Invalid Dual OTPs`);
                 return res.status(400).json({ message: 'Invalid OTPs' });
             }
         }
@@ -91,14 +90,17 @@ router.post('/verify-otp', async (req, res) => {
             if (user.emailOtp === otp || user.mobileOtp === otp) {
                 isVerified = true;
             } else {
+                console.log(`[VERIFY-OTP] FAIL: Invalid Single OTP`);
                 return res.status(400).json({ message: 'Invalid OTP' });
             }
         }
         else {
+            console.log(`[VERIFY-OTP] FAIL: No OTPs provided`);
             return res.status(400).json({ message: 'OTP required' });
         }
 
         // Verify Success
+        console.log(`[VERIFY-OTP] SUCCESS: User simplified verified!`);
         user.isVerified = true;
         user.emailOtp = undefined;
         user.mobileOtp = undefined;
