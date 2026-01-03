@@ -34,6 +34,7 @@ router.post('/register', async (req, res) => {
         user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
 
         await user.save();
+        console.log(`[DEBUG] User saved/updated: ${user.email} (ID: ${user._id})`);
 
         // SAVE OTPs TO FILE (DEBUGGING)
         fs.writeFileSync('otp.txt', `[REGISTER] Email OTP: ${emailOtp} | Mobile OTP: ${mobileOtp}`);
@@ -49,7 +50,7 @@ router.post('/register', async (req, res) => {
         res.json({ message: 'OTPs sent', identifier: email });
 
     } catch (err) {
-        console.error(err.message);
+        console.error('[REGISTER ERROR]', err);
         res.status(500).json({ message: err.message });
     }
 });
@@ -58,14 +59,18 @@ router.post('/register', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
     try {
         const { identifier, otp, emailOtp, mobileOtp } = req.body;
+        console.log(`[VERIFY-OTP] Request:`, { identifier, otp, emailOtp, mobileOtp });
+
         // identifier can be email or mobile
         const user = await User.findOne({
             $or: [{ email: identifier }, { mobile: identifier }]
         });
 
         if (!user) {
+            console.log(`[VERIFY-OTP] User not found for identifier: '${identifier}'`);
             return res.status(400).json({ message: 'User not found' });
         }
+        console.log(`[VERIFY-OTP] User found: ${user.email} (Verified: ${user.isVerified})`);
 
         if (user.otpExpires < Date.now()) {
             return res.status(400).json({ message: 'OTP expired' });
